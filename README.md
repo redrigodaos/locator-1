@@ -41,22 +41,24 @@ printf '\n\e[1;93m[\e[0m\e[1;77m*\e[0m\e[1;93m] Or using bitly:\e[0m\e[1;77m %s 
 - ngrok for linux
 - jq for linux
 
-Notes: 
+```
+
+### Notes for Termux User: 
 
 If you're using Termux 
 1. Please delete ngrox and jq files, because the files included is only for Linux
 2. Modify these of lines as below:
 
 Coba ganti baris ke 345 dan 347: 
+```
 link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | ./jq -r '.tunnels[0].public_url' > link.txt)
 
 send_link=$(cat link.txt)
-
+```
 
 Menjadi seperti ini:
+```
 link=$(curl -s -N http://localhost:4040/api/tunnels > link.txt)
 
 send_link=$(cat link.txt | cut -d',' -f3 | cut -d '"' -f4)
-
-
 ```
